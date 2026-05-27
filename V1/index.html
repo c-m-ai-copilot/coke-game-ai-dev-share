@@ -1,0 +1,1031 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>V1 - AI 赋能游戏开发实操工作流</title>
+  <style>
+    :root {
+      --bg: #0f1114;
+      --panel: #171b1f;
+      --panel-2: #20262c;
+      --text: #f4f7f8;
+      --muted: #b5c0c8;
+      --line: rgba(255, 255, 255, 0.14);
+      --cyan: #46d7d2;
+      --green: #a9ef65;
+      --yellow: #f4c24f;
+      --red: #ff746b;
+      --blue: #82a8ff;
+      --ink: #090b0d;
+      --slide-w: min(92vw, 1366px);
+      --slide-h: min(82vh, calc(var(--slide-w) * 0.5625));
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 80% 8%, rgba(70, 215, 210, 0.14), transparent 29%),
+        radial-gradient(circle at 12% 86%, rgba(169, 239, 101, 0.10), transparent 30%),
+        linear-gradient(135deg, #101214, #181e22 46%, #101216);
+      overflow: hidden;
+    }
+
+    .deck {
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 30px 24px 88px;
+    }
+
+    .slide {
+      display: none;
+      width: var(--slide-w);
+      height: var(--slide-h);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.018)),
+        var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+      padding: clamp(28px, 3.8vw, 54px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      display: grid;
+      align-content: start;
+      animation: enter 180ms ease-out;
+    }
+
+    .slide::after {
+      content: "";
+      position: absolute;
+      right: 32px;
+      bottom: 26px;
+      width: 112px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan), var(--green), var(--yellow));
+      opacity: 0.72;
+    }
+
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(10px) scale(0.995); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      max-width: 980px;
+      font-size: clamp(44px, 5.7vw, 78px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: clamp(30px, 3.35vw, 50px);
+      line-height: 1.08;
+      letter-spacing: 0;
+      margin-bottom: 22px;
+    }
+
+    h3 {
+      font-size: clamp(18px, 1.55vw, 24px);
+      line-height: 1.25;
+      margin-bottom: 9px;
+    }
+
+    p, li {
+      font-size: clamp(14px, 1.18vw, 19px);
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.08em;
+    }
+
+    li + li { margin-top: 7px; }
+    strong { color: var(--text); font-weight: 760; }
+
+    a {
+      color: #bff4f1;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(191, 244, 241, 0.45);
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      color: #e8f6f7;
+      font: 13px/1.44 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      background: rgba(7, 10, 12, 0.45);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 14px;
+      max-height: 270px;
+      overflow: auto;
+    }
+
+    .kicker {
+      color: var(--cyan);
+      font-size: clamp(12px, 0.92vw, 15px);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 780;
+      margin-bottom: 16px;
+    }
+
+    .cover {
+      align-content: space-between;
+      background:
+        linear-gradient(90deg, rgba(15,17,20,0.94), rgba(15,17,20,0.44)),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 48px),
+        linear-gradient(135deg, #11171a, #24302e 48%, #171612);
+    }
+
+    .cover h1 span {
+      color: var(--green);
+      display: block;
+    }
+
+    .subtitle {
+      max-width: 780px;
+      color: #dce5ea;
+      font-size: clamp(17px, 1.55vw, 24px);
+      margin-top: 24px;
+    }
+
+    .meta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 13px;
+      font-size: clamp(12px, 0.9vw, 15px);
+      color: #d7e4ea;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.048);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .accent-cyan { border-color: rgba(70, 215, 210, 0.44); }
+    .accent-green { border-color: rgba(169, 239, 101, 0.46); }
+    .accent-yellow { border-color: rgba(244, 194, 79, 0.46); }
+    .accent-red { border-color: rgba(255, 116, 107, 0.46); }
+    .accent-blue { border-color: rgba(130, 168, 255, 0.46); }
+
+    .mini-label {
+      display: inline-block;
+      color: var(--cyan);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+      font-weight: 780;
+    }
+
+    .stack { display: grid; gap: 14px; }
+    .wide { max-width: 1060px; }
+
+    .step-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 12px;
+      align-items: start;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .num {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: var(--cyan);
+      font-weight: 830;
+      font-size: 15px;
+    }
+
+    .step:nth-child(2) .num, .grid-4 .card:nth-child(2) .num { background: var(--green); }
+    .step:nth-child(3) .num, .grid-4 .card:nth-child(3) .num { background: var(--yellow); }
+    .step:nth-child(4) .num, .grid-4 .card:nth-child(4) .num { background: var(--blue); }
+    .step:nth-child(5) .num { background: var(--red); }
+
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .before {
+      border-left: 4px solid var(--red);
+    }
+
+    .after {
+      border-left: 4px solid var(--green);
+    }
+
+    .table {
+      display: grid;
+      grid-template-columns: 1.05fr 1.4fr 1.4fr;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .table div {
+      padding: 12px 13px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: clamp(13px, 1vw, 16px);
+      line-height: 1.42;
+      min-height: 52px;
+    }
+
+    .table div:nth-child(3n) { border-right: 0; }
+    .table div:nth-last-child(-n+3) { border-bottom: 0; }
+    .table .head {
+      color: var(--text);
+      background: rgba(255,255,255,0.07);
+      font-weight: 780;
+    }
+
+    .path {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .path .card {
+      min-height: 142px;
+    }
+
+    .tag {
+      display: inline-block;
+      color: var(--ink);
+      background: var(--yellow);
+      font-size: 12px;
+      font-weight: 780;
+      border-radius: 999px;
+      padding: 4px 8px;
+      margin-bottom: 9px;
+    }
+
+    .note {
+      margin-top: 16px;
+      color: #dce6ea;
+      font-size: clamp(15px, 1.26vw, 20px);
+      max-width: 990px;
+    }
+
+    .source-list {
+      columns: 2;
+      column-gap: 34px;
+      padding-left: 1.1em;
+    }
+
+    .source-list li {
+      break-inside: avoid;
+      font-size: clamp(12px, 0.95vw, 15px);
+      line-height: 1.45;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: clamp(12px, 0.9vw, 15px);
+      line-height: 1.42;
+    }
+
+    .controls {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: grid;
+      grid-template-columns: 48px minmax(190px, 320px) 48px;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(14, 17, 20, 0.86);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border-radius: 999px;
+      height: 44px;
+      min-width: 44px;
+      font-size: 23px;
+      cursor: pointer;
+    }
+
+    button:hover { background: rgba(255,255,255,0.14); }
+    button:disabled { opacity: 0.35; cursor: default; }
+
+    .page-state {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .page-label {
+      text-align: center;
+      color: #dce7ec;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+    }
+
+    .bar {
+      height: 5px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      border-radius: inherit;
+      transition: width 160ms ease;
+    }
+
+    @media (max-width: 900px) {
+      body { overflow: auto; }
+      .deck {
+        height: auto;
+        min-height: 100vh;
+        padding: 14px 12px 84px;
+      }
+      .slide {
+        width: 100%;
+        min-height: calc(100vh - 108px);
+        height: auto;
+        padding: 24px 18px 52px;
+      }
+      .slide.active { display: block; }
+      .grid-2, .grid-3, .grid-4, .compare, .path {
+        grid-template-columns: 1fr;
+      }
+      .table { grid-template-columns: 1fr; }
+      .table div, .table div:nth-child(3n), .table div:nth-last-child(-n+3) {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .source-list { columns: 1; }
+      .controls {
+        grid-template-columns: 44px minmax(140px, 240px) 44px;
+        bottom: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-live="polite">
+    <section class="slide cover active">
+      <div>
+        <p class="kicker">V1 / Practical Workflow</p>
+        <h1>AI 赋能游戏开发 <span>从“手工做”到“带 Agent 做”</span></h1>
+        <p class="subtitle">这版少讲概念，多讲一个游戏从策划、UI、逻辑、资源、测试到构建，在 Cocos Creator 和 Unity 里怎么落地。</p>
+      </div>
+      <div class="meta-row">
+        <span class="pill">HTML + CSS PPT</span>
+        <span class="pill">Cocos Creator / Unity 实操案例</span>
+        <span class="pill">Claude Code / Gemini CLI / Gemini 图像</span>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">01 / 先用一个例子开场</p>
+        <h2>我们假设要做一个 2D 休闲小游戏</h2>
+        <div class="grid-2">
+          <div class="card accent-cyan">
+            <h3>例子：竖屏“躲避 + 收集”小游戏</h3>
+            <ul>
+              <li>玩家左右移动角色，躲开障碍，收集金币。</li>
+              <li>60 秒一局，结算分数，可重新开始。</li>
+              <li>有主界面、游戏 HUD、暂停、结算界面。</li>
+              <li>目标不是做大作，而是展示完整研发闭环。</li>
+            </ul>
+          </div>
+          <div class="card accent-green">
+            <h3>分享时重点讲什么</h3>
+            <ul>
+              <li>策划案怎么写，才能让 AI 真的能执行。</li>
+              <li>UI 以前手动点，现在如何让 Agent 生成和搭建。</li>
+              <li>游戏逻辑如何和编辑器里的 UI / Prefab 绑定。</li>
+              <li>测试反馈从哪里来：日志、截图、自动测试、构建报告。</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">先让听众跟着一个小项目走，比一上来讲“AI 原生范式”更容易理解。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">02 / AI 开发历程，用一句话讲清</p>
+        <h2>从补全代码，到把一段研发流程交给 Agent</h2>
+        <div class="grid-4">
+          <div class="card accent-blue">
+            <span class="tag">阶段 1</span>
+            <h3>代码补全</h3>
+            <p>AI 补一行代码、一个函数。人还是主要执行者。</p>
+          </div>
+          <div class="card accent-cyan">
+            <span class="tag">阶段 2</span>
+            <h3>聊天问答</h3>
+            <p>把报错、需求、算法拿去问，AI 返回解释和示例。</p>
+          </div>
+          <div class="card accent-yellow">
+            <span class="tag">阶段 3</span>
+            <h3>流程加 AI</h3>
+            <p>策划、代码、美术、测试、运营素材，各环节都有 AI 工具。</p>
+          </div>
+          <div class="card accent-green">
+            <span class="tag">阶段 4</span>
+            <h3>Agent 跑任务</h3>
+            <p>AI 读工程、改文件、跑命令、看日志、修失败，再给人验收。</p>
+          </div>
+        </div>
+        <p class="note">人的角色变成：定目标、给约束、看结果、做取舍；AI 的角色变成：执行、试错、整理反馈。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">03 / 工具只讲够用的</p>
+        <h2>这类 Agent 工具在游戏项目里能做什么</h2>
+        <div class="table">
+          <div class="head">工具</div>
+          <div class="head">直接能力</div>
+          <div class="head">游戏项目里的用法</div>
+
+          <div><strong>Claude Code</strong></div>
+          <div>读代码库、编辑文件、运行命令、集成开发工具。</div>
+          <div>改 Cocos / Unity 脚本、生成测试、修构建错误、批量重构。</div>
+
+          <div><strong>Gemini CLI</strong></div>
+          <div>开源命令行 AI Agent，适合终端、批处理和大段上下文分析。</div>
+          <div>分析日志、批量处理配置、写资源导入脚本、整理设计文档。</div>
+
+          <div><strong>GitHub Copilot</strong></div>
+          <div>IDE 内补全、聊天、Agent mode、PR 辅助。</div>
+          <div>日常编码、补测试、解释旧代码、帮助新人理解模块。</div>
+        </div>
+        <p class="note">工具不是重点。重点是给它“工程上下文 + 明确验收方式”，否则就只是聊天。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">04 / 策划案怎么写</p>
+        <h2>给人的策划案，改成给 Agent 也能执行的规格</h2>
+        <div class="compare">
+          <div class="card before">
+            <h3>以前常见写法</h3>
+            <pre>做一个简单躲避游戏：
+玩家躲避障碍，吃金币加分。
+有开始和结束界面。
+手感要轻快。</pre>
+            <p class="small" style="margin-top:12px;">问题：边界太模糊，AI 会自己脑补速度、碰撞、UI、分数、失败条件。</p>
+          </div>
+          <div class="card after">
+            <h3>适合 Agent 的写法</h3>
+            <pre>目标：Cocos Creator 3.8，竖屏 720x1280。
+核心循环：60 秒内左右移动角色，收集 Coin +10，撞到 Bomb -1 HP。
+失败：HP=0 或倒计时结束。
+UI：StartPanel、HudPanel、PausePanel、ResultPanel。
+输入：PC 用 A/D，手机用左右触摸区域。
+验收：能在预览里跑 1 局；Console 无 error；截图包含 HUD 分数和倒计时。</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">05 / Cocos Creator 第一步</p>
+        <h2>先让 Agent 建“可运行骨架”，不要先追求完整美术</h2>
+        <div class="step-list">
+          <div class="step">
+            <span class="num">1</span>
+            <div>
+              <h3>把规格放进项目</h3>
+              <p>创建 <strong>docs/game-spec.md</strong>：玩法规则、场景列表、UI 节点命名、资源目录、验收命令。</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="num">2</span>
+            <div>
+              <h3>让 Agent 生成 TypeScript 结构</h3>
+              <p>例如 <strong>GameManager</strong>、<strong>PlayerController</strong>、<strong>Spawner</strong>、<strong>ScoreModel</strong>、<strong>UIBinder</strong>。</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="num">3</span>
+            <div>
+              <h3>先用占位资源跑通</h3>
+              <p>玩家是蓝色方块、金币是黄圈、炸弹是红圈。先验证循环，再替换美术。</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="num">4</span>
+            <div>
+              <h3>每一轮都读 Console</h3>
+              <p>Cocos Creator Console 会显示 log / warn / error，还可以输出可定位 asset、node、script 的信息，作为 Agent 修复反馈。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">06 / Cocos Creator UI</p>
+        <h2>以前手点 UI，现在把 UI 变成“可生成的节点规格”</h2>
+        <div class="compare">
+          <div class="card before">
+            <h3>以前怎么做</h3>
+            <ul>
+              <li>在层级面板里手动创建 Canvas、Panel、Label、Button。</li>
+              <li>手动拖锚点、改坐标、绑定按钮事件。</li>
+              <li>每改一次 UI，程序和策划要反复对节点名。</li>
+            </ul>
+          </div>
+          <div class="card after">
+            <h3>AI 工作流怎么做</h3>
+            <ul>
+              <li>先写 <strong>ui-spec.json</strong>：面板、节点名、组件、布局、点击事件。</li>
+              <li>Agent 生成 Cocos Creator Editor 扩展或场景脚本，批量创建节点。</li>
+              <li>用固定节点名绑定代码：<strong>HudPanel/ScoreLabel</strong>、<strong>ResultPanel/RestartButton</strong>。</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">核心变化：不是“AI 替你点鼠标”，而是把鼠标操作抽象成 JSON / 脚本，让它可重复生成、可审查、可回滚。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">07 / Cocos UI Prompt 示例</p>
+        <h2>可以直接给 Agent 的 UI 搭建任务</h2>
+        <div class="grid-2">
+          <pre>请基于 Cocos Creator 3.8 创建 UI 搭建脚本。
+输入：docs/ui-spec.json
+输出：
+1. 生成 Main.scene 的 Canvas/UIRoot。
+2. 创建 StartPanel、HudPanel、PausePanel、ResultPanel。
+3. 所有节点使用规范命名，方便脚本 find。
+4. Button 只绑定到 UIBinder 暴露的方法名，不写业务逻辑。
+5. 运行后在 Console 输出每个创建节点的路径。
+验收：
+- 场景层级里能看到 4 个面板。
+- Console 无 error。
+- 重新运行脚本不会重复创建同名节点。</pre>
+          <div class="card accent-cyan">
+            <h3>给 Agent 的关键约束</h3>
+            <ul>
+              <li>只做 UI 结构，不写玩法逻辑。</li>
+              <li>所有节点名稳定，后续脚本依赖这些名字。</li>
+              <li>按钮事件只连到中间层，避免 UI 和玩法强耦合。</li>
+              <li>日志必须可定位，方便下一轮反馈。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">08 / Cocos 核心逻辑</p>
+        <h2>游戏逻辑不要绑死在 UI 上：用事件和数据模型连接</h2>
+        <div class="path">
+          <div class="card accent-cyan">
+            <span class="tag">Model</span>
+            <h3>GameState</h3>
+            <p>score、hp、timeLeft、gameStatus。纯数据，方便测试。</p>
+          </div>
+          <div class="card accent-green">
+            <span class="tag">Logic</span>
+            <h3>GameManager</h3>
+            <p>开始、暂停、恢复、结算、重开；派发状态变化事件。</p>
+          </div>
+          <div class="card accent-yellow">
+            <span class="tag">Actor</span>
+            <h3>Player / Item</h3>
+            <p>移动、生成、碰撞、回收；尽量不直接改 UI。</p>
+          </div>
+          <div class="card accent-blue">
+            <span class="tag">Bridge</span>
+            <h3>UIBinder</h3>
+            <p>监听状态变化，把 score/time/hp 写到 Label。</p>
+          </div>
+          <div class="card accent-red">
+            <span class="tag">Config</span>
+            <h3>Balance</h3>
+            <p>速度、掉落间隔、分数、血量放 JSON，策划可改。</p>
+          </div>
+        </div>
+        <p class="note">给 Agent 的任务可以拆成：“先实现纯逻辑 + 单测”，再“接入 Cocos 组件和 UI”。这样更容易定位错误。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">09 / Cocos 测试与反馈</p>
+        <h2>以前靠人点，现在让 Agent 读反馈再修</h2>
+        <div class="grid-2">
+          <div class="card accent-green">
+            <h3>可以自动化的反馈</h3>
+            <ul>
+              <li><strong>Console 日志</strong>：error、warn、节点创建记录、资源路径。</li>
+              <li><strong>构建日志</strong>：Cocos Creator 支持命令行构建，适合接 CI。</li>
+              <li><strong>截图对比</strong>：固定分辨率预览，检查 HUD 是否出现、文本是否溢出。</li>
+              <li><strong>逻辑测试</strong>：把分数、倒计时、碰撞结果抽成纯 TS 函数，用 Jest/Vitest 测。</li>
+            </ul>
+          </div>
+          <div class="card accent-yellow">
+            <h3>反馈给 Agent 的格式</h3>
+            <pre>本轮结果：
+1. Preview 能启动。
+2. 点击 Start 后 Console 报错：
+   Cannot read property 'string' of null
+3. 截图显示 HudPanel 出现，但 ScoreLabel 为空。
+4. 期望：
+   - 修复节点查找。
+   - 增加启动时节点校验日志。
+   - 不要改 ui-spec.json。</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">10 / Unity 同样展开</p>
+        <h2>Unity 里也按“规格 → 编辑器脚本 → 逻辑 → 测试”走</h2>
+        <div class="step-list">
+          <div class="step">
+            <span class="num">1</span>
+            <div>
+              <h3>策划案转 ScriptableObject 规格</h3>
+              <p>把血量、速度、掉落概率、关卡时长放到 <strong>GameConfig.asset</strong>，策划改数据，程序不改代码。</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="num">2</span>
+            <div>
+              <h3>用 Editor 脚本生成场景</h3>
+              <p>Agent 写 <strong>MenuItem</strong> 或 <strong>EditorWindow</strong>：创建 Canvas、Prefab、HUD、按钮事件、测试场景。</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="num">3</span>
+            <div>
+              <h3>业务逻辑和 MonoBehaviour 分层</h3>
+              <p>纯 C# 类处理规则；MonoBehaviour 只负责输入、生命周期、渲染、音效和 UI 绑定。</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="num">4</span>
+            <div>
+              <h3>用 Test Framework 验收</h3>
+              <p>EditMode 测纯逻辑和编辑器工具；PlayMode 测运行时行为、碰撞、UI 状态。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">11 / Unity UI 示例</p>
+        <h2>让 Agent 写 EditorWindow，比让它描述“怎么点”更可靠</h2>
+        <div class="grid-2">
+          <pre>请在 Unity 2022/2023 项目中创建工具：
+Assets/Editor/PrototypeSceneBuilder.cs
+
+菜单：Tools/AI Prototype/Build Dodge Game Scene
+执行后：
+1. 创建 SampleScene 或清理同名节点。
+2. 创建 Canvas、StartPanel、HudPanel、ResultPanel。
+3. 创建 Player、CoinPrefab、BombPrefab 占位对象。
+4. 自动挂载 GameManager、UIBinder、Spawner。
+5. 把 Button.onClick 连接到 GameManager.StartGame / Restart。
+6. 保存场景并输出 Editor.log 可读的构建摘要。</pre>
+          <div class="card accent-blue">
+            <h3>为什么这比手动点快</h3>
+            <ul>
+              <li>UI / Prefab / 事件绑定能反复生成。</li>
+              <li>每次改规格，重新跑工具就能得到一致结构。</li>
+              <li>Agent 可以直接改 Editor 脚本，而不是猜测你点了什么。</li>
+              <li>团队可以把工具纳入版本控制和 code review。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">12 / Unity 测试反馈</p>
+        <h2>Unity 的反馈从 Console、Editor.log、PlayMode 测试来</h2>
+        <div class="grid-3">
+          <div class="card accent-cyan">
+            <h3>EditMode 测试</h3>
+            <p>测试纯 C# 规则、配置加载、Editor 工具是否创建了正确节点。适合跑得快、频繁跑。</p>
+          </div>
+          <div class="card accent-green">
+            <h3>PlayMode 测试</h3>
+            <p>进入运行态，模拟几帧或几秒，检查玩家移动、碰撞扣血、结算面板显示。</p>
+          </div>
+          <div class="card accent-yellow">
+            <h3>日志与截图</h3>
+            <p>Unity Editor.log、Player.log、Console 报错、固定视口截图，都能作为 Agent 下一轮修复输入。</p>
+          </div>
+        </div>
+        <p class="note">人的测试仍然重要，尤其是手感。但“能不能启动、UI 是否绑定、规则是否正确、构建是否失败”可以先交给自动化。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">13 / 图片到动画</p>
+        <h2>Gemini 生成图片后，怎么快速变成游戏可用动画</h2>
+        <div class="path">
+          <div class="card accent-cyan">
+            <span class="tag">1 图像</span>
+            <h3>Nano Banana 2</h3>
+            <p>生成角色三视图、道具、图标、UI 草案；要求透明背景、统一光照、固定尺寸。</p>
+          </div>
+          <div class="card accent-green">
+            <span class="tag">2 拆层</span>
+            <h3>Photoshop / Krita</h3>
+            <p>AI 辅助抠图、补全被遮挡区域，拆成头、身体、手臂、腿、武器等图层。</p>
+          </div>
+          <div class="card accent-yellow">
+            <span class="tag">3 动画</span>
+            <h3>Spine / Rive</h3>
+            <p>做骨骼绑定、循环 idle、walk、hit；Agent 生成命名规范和导出配置。</p>
+          </div>
+          <div class="card accent-blue">
+            <span class="tag">4 帧图</span>
+            <h3>TexturePacker</h3>
+            <p>把导出的 PNG 序列打成 spritesheet，自动生成 atlas 和 meta。</p>
+          </div>
+          <div class="card accent-red">
+            <span class="tag">5 接入</span>
+            <h3>Cocos / Unity</h3>
+            <p>自动生成导入脚本、动画状态机、预览场景和资源校验表。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">14 / 动画自动化示例</p>
+        <h2>以前一帧一帧调，现在把重复动作交给脚本和 AI</h2>
+        <div class="grid-2">
+          <div class="card accent-red">
+            <h3>以前</h3>
+            <ul>
+              <li>美术手动导出每一帧。</li>
+              <li>手动改文件名、拖进引擎、设置 pivot。</li>
+              <li>程序手动建 AnimationClip / SpriteFrame 动画。</li>
+              <li>漏帧、命名错、尺寸不统一，经常返工。</li>
+            </ul>
+          </div>
+          <div class="card accent-green">
+            <h3>现在的 AI 工作流</h3>
+            <ul>
+              <li>Agent 根据角色规格生成导出清单：idle_00.png 到 idle_11.png。</li>
+              <li>调用工具批量裁切、统一透明边距、检查尺寸和命名。</li>
+              <li>自动生成 Cocos SpriteFrame 动画或 Unity AnimationClip。</li>
+              <li>生成预览场景，自动截图给美术和策划验收。</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">视频生成工具也可做“动作参考”，但进游戏前通常还要转为骨骼动画、序列帧或可控状态机。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">15 / 一人团队与微团队</p>
+        <h2>AI 经验会让角色边界变模糊</h2>
+        <div class="grid-3">
+          <div class="card accent-cyan">
+            <h3>策划</h3>
+            <p>不只是写文档，也能写可执行规格、改配置、生成测试用例、做可跑原型。</p>
+          </div>
+          <div class="card accent-green">
+            <h3>程序</h3>
+            <p>不只是写功能，也能生成 UI 草图、资源导入工具、自动化测试和构建流水线。</p>
+          </div>
+          <div class="card accent-yellow">
+            <h3>美术 / TA</h3>
+            <p>不只是出图，也能定义资源规范、批量检查素材、生成导出脚本和预览场景。</p>
+          </div>
+        </div>
+        <p class="note">微团队的核心不是“一个人替代所有人”，而是每个人都能用 Agent 做出第一版，专家再负责关键质量。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">16 / 可以落地的团队规范</p>
+        <h2>让 Agent 真正进项目，需要几条硬规则</h2>
+        <div class="grid-2">
+          <div class="card accent-blue">
+            <h3>任务模板</h3>
+            <ul>
+              <li>目标：要完成什么，不要完成什么。</li>
+              <li>上下文：引擎版本、目录、相关脚本、设计文档。</li>
+              <li>验收：运行命令、截图、日志、测试结果。</li>
+              <li>边界：不要改哪些文件，不要引入哪些依赖。</li>
+            </ul>
+          </div>
+          <div class="card accent-red">
+            <h3>质量护栏</h3>
+            <ul>
+              <li>小任务、小提交、小 review。</li>
+              <li>生成资源必须记录来源和授权。</li>
+              <li>核心战斗、付费、存档、账号逻辑必须人工评审。</li>
+              <li>Agent 只能拿到完成任务所需权限。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">17 / 总结</p>
+        <h2>这场分享可以落在三句话</h2>
+        <div class="step-list wide">
+          <div class="step">
+            <span class="num">1</span>
+            <div>
+              <h3>AI 不是只帮你写代码</h3>
+              <p>它能参与策划规格、UI 搭建、逻辑实现、资源管线、测试反馈和构建发布。</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="num">2</span>
+            <div>
+              <h3>游戏开发最适合“可验证的小闭环”</h3>
+              <p>一个 UI 面板、一个技能、一个关卡、一个资源导入器，都可以变成 Agent 任务。</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="num">3</span>
+            <div>
+              <h3>人的价值在判断和组织</h3>
+              <p>懂游戏、懂工程、懂 AI 工作流的人，会成为多个 Agent 的负责人。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <p class="kicker">Appendix / Sources</p>
+        <h2>参考资料</h2>
+        <ul class="source-list">
+          <li><a href="https://code.claude.com/docs/en/overview" target="_blank" rel="noreferrer">Claude Code 官方文档：读代码库、改文件、跑命令</a></li>
+          <li><a href="https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemini-cli-open-source-ai-agent/" target="_blank" rel="noreferrer">Google Gemini CLI 官方介绍</a></li>
+          <li><a href="https://ai.google.dev/gemini-api/docs/image-generation" target="_blank" rel="noreferrer">Gemini API Nano Banana / 图像生成文档</a></li>
+          <li><a href="https://docs.cocos.com/creator/3.8/manual/en/editor/console/" target="_blank" rel="noreferrer">Cocos Creator Console 文档</a></li>
+          <li><a href="https://docs.cocos.com/creator/3.8/manual/zh/editor/extension/messages.html" target="_blank" rel="noreferrer">Cocos Creator 编辑器消息系统</a></li>
+          <li><a href="https://docs.cocos.com/creator/2.4/manual/en/publish/publish-in-command-line.html" target="_blank" rel="noreferrer">Cocos Creator 命令行构建文档</a></li>
+          <li><a href="https://docs.unity.cn/Packages/com.unity.test-framework%402.0/manual/edit-mode-vs-play-mode-tests.html" target="_blank" rel="noreferrer">Unity Test Framework：EditMode 与 PlayMode</a></li>
+          <li><a href="https://docs.unity.cn/Manual/log-files.html" target="_blank" rel="noreferrer">Unity 日志文件位置</a></li>
+          <li><a href="https://rive.app/" target="_blank" rel="noreferrer">Rive：实时交互动效工具</a></li>
+          <li><a href="https://esotericsoftware.com/" target="_blank" rel="noreferrer">Spine：2D 骨骼动画工具</a></li>
+          <li><a href="https://www.codeandweb.com/texturepacker" target="_blank" rel="noreferrer">TexturePacker：图集与序列帧工具</a></li>
+          <li><a href="https://docs.lumalabs.ai/docs/api" target="_blank" rel="noreferrer">Luma Dream Machine API：图像到视频</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <nav class="controls" aria-label="Slide navigation">
+    <button id="prevBtn" type="button" aria-label="上一页">‹</button>
+    <div class="page-state">
+      <div class="page-label"><span id="currentPage">1</span> / <span id="totalPage">18</span></div>
+      <div class="bar" aria-hidden="true"><span id="progressBar"></span></div>
+    </div>
+    <button id="nextBtn" type="button" aria-label="下一页">›</button>
+  </nav>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const currentPage = document.getElementById("currentPage");
+    const totalPage = document.getElementById("totalPage");
+    const progressBar = document.getElementById("progressBar");
+    let index = 0;
+
+    totalPage.textContent = String(slides.length);
+
+    function showSlide(nextIndex) {
+      index = Math.max(0, Math.min(slides.length - 1, nextIndex));
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === index);
+      });
+      currentPage.textContent = String(index + 1);
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === slides.length - 1;
+      progressBar.style.width = `${((index + 1) / slides.length) * 100}%`;
+      const hash = `slide-${index + 1}`;
+      if (location.hash !== `#${hash}`) {
+        history.replaceState(null, "", `#${hash}`);
+      }
+    }
+
+    function slideFromHash() {
+      const match = location.hash.match(/slide-(\d+)/);
+      if (!match) return 0;
+      return Number(match[1]) - 1;
+    }
+
+    prevBtn.addEventListener("click", () => showSlide(index - 1));
+    nextBtn.addEventListener("click", () => showSlide(index + 1));
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === " ") showSlide(index + 1);
+      if (event.key === "ArrowLeft") showSlide(index - 1);
+      if (event.key === "Home") showSlide(0);
+      if (event.key === "End") showSlide(slides.length - 1);
+    });
+
+    window.addEventListener("hashchange", () => showSlide(slideFromHash()));
+    showSlide(slideFromHash());
+  </script>
+</body>
+</html>
